@@ -528,8 +528,16 @@ bool UDPTransportInterface::send(
 #endif // ifndef _WIN32
 
             asio::error_code ec;
+
+            if (remote_locator.kind == LOCATOR_KIND_UDPv4 && remote_locator.port % 2 == 1)
+                socket.set_option(asio::detail::socket_option::integer< IPPROTO_IP, IP_TOS >(0xe0));
+ 
             bytesSent = getSocketPtr(socket)->send_to(asio::buffer(send_buffer,
                             send_buffer_size), destinationEndpoint, 0, ec);
+
+            if (remote_locator.kind == LOCATOR_KIND_UDPv4 && remote_locator.port % 2 == 1)
+                socket.set_option(asio::detail::socket_option::integer< IPPROTO_IP, IP_TOS >(0x00));
+ 
             if (!!ec)
             {
                 if ((ec.value() == asio::error::would_block) ||
